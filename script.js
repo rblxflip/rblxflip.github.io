@@ -1,16 +1,14 @@
 let auth=false
 let username=""
-let bux=0
+let bux=1000
 
-/* BACKGROUND ITEMS */
+function format(num){
+return num.toLocaleString()
+}
 
 const container=document.getElementById("item-background")
 
-const items=[
-"images/item1.png",
-"images/item2.png",
-"images/item3.png"
-]
+const items=["images/item1.png","images/item2.png","images/item3.png"]
 
 function spawnItem(){
 
@@ -31,8 +29,16 @@ setTimeout(()=>img.remove(),4000)
 
 setInterval(spawnItem,1200)
 
+const announcement=""
 
-/* LOGIN MODAL */
+if(announcement){
+
+const bar=document.getElementById("announcementBar")
+
+bar.style.display="block"
+bar.innerText=announcement
+
+}
 
 const modal=document.getElementById("loginModal")
 const openBtn=document.getElementById("startBtn")
@@ -42,20 +48,22 @@ const loginBtn=document.getElementById("loginSubmit")
 openBtn.onclick=()=>modal.style.display="flex"
 closeBtn.onclick=()=>modal.style.display="none"
 
-
-/* AUTH RENDER */
-
 function renderAuth(){
 
 const area=document.getElementById("authArea")
+const startBtn=document.getElementById("startBtn")
 
 if(!auth){
+
+startBtn.style.display="inline-block"
 
 area.innerHTML=`<button class="login-btn" id="navLogin">Login</button>`
 
 document.getElementById("navLogin").onclick=()=>modal.style.display="flex"
 
 }else{
+
+startBtn.style.display="none"
 
 area.innerHTML=`
 
@@ -65,12 +73,13 @@ area.innerHTML=`
 
 <div class="dropdown" id="dropdown">
 
-<img src="images/pfp.png" width="40">
+<img src="images/pfp.png">
 
-<p>${username}</p>
+<div class="username">@${username}</div>
 
-<div class="bux">
-<img src="images/bux.png" width="16"> ${bux}
+<div class="balance">
+<img src="images/bux.png">
+<div>${format(bux)}</div>
 </div>
 
 <button id="logoutBtn">Logout</button>
@@ -98,39 +107,41 @@ document.getElementById("logoutBtn").onclick=logout
 
 renderAuth()
 
-
-/* LOGIN */
-
 loginBtn.onclick=()=>{
 
 const input=document.getElementById("usernameInput").value.trim()
 
 if(!input)return
 
-loginBtn.disabled=true
-loginBtn.innerText="..."
+loginBtn.innerText="Logging in..."
 
 setTimeout(()=>{
 
 auth=true
 username=input
-bux=0
+bux=1000
 
 modal.style.display="none"
 
-notify(`Successfully Logged In As ${username}!`)
-
 renderAuth()
 
-loginBtn.disabled=false
+notify(`Successfully Logged In As ${username}!`)
+
 loginBtn.innerText="Login"
 
 },2000)
 
 }
 
+function logout(){
 
-/* NOTIFICATION */
+auth=false
+username=""
+bux=0
+
+location.reload()
+
+}
 
 function notify(msg){
 
@@ -139,91 +150,49 @@ const box=document.getElementById("notify")
 box.innerText=msg
 box.style.display="block"
 
-setTimeout(()=>box.style.display="none",3000)
+setTimeout(()=>{
+
+box.style.display="none"
+
+},3000)
 
 }
 
+const wins=document.getElementById("liveWins")
 
-/* LOGOUT */
-
-function logout(){
-
-auth=false
-username=""
-bux=0
-
-if(location.pathname.includes("index")){
-location.reload()
-}else{
-location.href="index.html"
-}
-
-}
-
-
-/* CONTINUOUS LIVE FEED */
-
-const feedTrack=document.getElementById("feedTrack")
-
-const fakeNames=[
-"BuilderPro","NoobMaster","BlockyKing","PixelGamer",
-"EpicRBLX","SwordMaster","LavaRunner","BrickLord",
-"ShadowNoob","ObbyGod","BloxWizard","SpeedRunner",
-"RedDominus","GoldenNoob","ObbyChampion"
+const names=[
+"BuilderPro","NoobMaster","BlockyKing",
+"PixelGamer","EpicRBLX","ShadowNoob",
+"ObbyGod","BrickLord","SpeedRunner",
+"RedDominus","GoldenNoob","BloxWizard"
 ]
 
-let feedOffset=0
+function addWin(){
 
-function addFeedItem(){
+if(wins.children.length>=5)return
 
-const name=fakeNames[Math.floor(Math.random()*fakeNames.length)]
-const amount=Math.floor(Math.random()*5000)+50
+const name=names[Math.floor(Math.random()*names.length)]
+
+const amount=Math.floor(Math.random()*9000)+50
 
 const div=document.createElement("div")
-div.className="feed-item"
 
-div.innerHTML=`${name} won <img src="images/bux.png"> ${amount}`
+div.className="win"
 
-feedTrack.appendChild(div)
+div.innerHTML=`${name} won <img src="images/bux.png"> ${format(amount)}`
 
-}
+wins.appendChild(div)
 
-/* preload feed */
+const stayTime=Math.random()*4000+4000
 
-for(let i=0;i<20;i++){
-addFeedItem()
-}
+setTimeout(()=>{
 
-/* keep adding wins */
+div.classList.add("fadeOut")
 
-setInterval(addFeedItem,2500)
+setTimeout(()=>div.remove(),500)
 
-/* smooth scrolling ticker */
-
-function animateFeed(){
-
-feedOffset-=0.3
-
-feedTrack.style.transform=`translateX(${feedOffset}px)`
-
-/* remove items that leave screen */
-
-const first=feedTrack.firstElementChild
-
-if(first){
-
-const rect=first.getBoundingClientRect()
-
-if(rect.right < 0){
-
-feedTrack.removeChild(first)
+},stayTime)
 
 }
 
-}
-
-requestAnimationFrame(animateFeed)
-
-}
-
-animateFeed()
+setInterval(addWin,2000+Math.random()*3000)
